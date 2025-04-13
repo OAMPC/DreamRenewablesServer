@@ -2,6 +2,7 @@ import stripe
 from os import getenv
 
 stripe.api_key = getenv("STRIPE_SECRET_KEY")
+WEBHOOK_SECRET = getenv("STRIPE_WEBHOOK_SECRET")
 
 def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url: str):
     session = stripe.checkout.Session.create(
@@ -22,3 +23,15 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
         cancel_url=getenv("FRONTEND_URL") + cancel_url,
     )
     return session
+
+def verify_stripe_signature(payload: bytes, sig_header: str) -> dict:
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=sig_header,
+            secret=WEBHOOK_SECRET
+        )
+        return event
+    except (ValueError, stripe.error.SignatureVerificationError) as e:
+        print("Stripe webhook signature invalid: ", e)
+        raise

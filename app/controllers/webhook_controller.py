@@ -3,7 +3,7 @@ from services.webhook_service import handle_stripe_event
 
 router = APIRouter()
 
-@router.post("/webhook")
+@router.post("/api/v1/webhook")
 async def stripe_webhook(request: Request):
     payload = await request.body()
     signature_header = request.headers.get("stripe-signature")

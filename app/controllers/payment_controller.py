@@ -3,7 +3,7 @@ from services.payment_service import generate_checkout_session
 
 router = APIRouter()
 
-@router.post("/create-checkout-session")
+@router.post("/api/v1/create-checkout-session")
 async def create_checkout_session(request: Request):
     data = await request.json()
     try:

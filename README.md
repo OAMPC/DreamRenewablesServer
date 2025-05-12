@@ -24,7 +24,7 @@
 
 2. Stripe
    1. Install the [Stripe Cli](https://docs.stripe.com/stripe-cli) and login
-   2. Set Stripe webhooks to ping to your local instance: `stripe listen --forward-to localhost:8000/webhook`
+   2. Set Stripe webhooks to ping to your local instance: `stripe listen --forward-to localhost:8000/api/v1/webhook`
    3. Save your webhook signing secret as a secret in .env called `STRIPE_WEBHOOK_SECRET`
 
 ## Running the app

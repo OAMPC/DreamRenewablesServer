@@ -4,10 +4,27 @@ from os import getenv
 stripe.api_key = getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = getenv("STRIPE_WEBHOOK_SECRET")
 
-def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url: str):
+def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url: str, gift_aid_donation: bool):
+    metadata = {
+        "gift_aid": str(gift_aid_donation).lower()
+    }
+
+    custom_fields = [
+        {
+            "key": "full_name",
+            "label": {
+                "type": "custom",
+                "custom": "Full Name"
+            },
+            "type": "text",
+            "optional": False
+        }
+    ]
+    
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         mode="subscription" if payment_type == "monthly" else "payment",
+        billing_address_collection="required",
         line_items=[{
             "price_data": {
                 "currency": "gbp",
@@ -21,6 +38,10 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
         }],
         success_url=getenv("FRONTEND_URL") + "/payment-success",
         cancel_url=getenv("FRONTEND_URL") + cancel_url,
+        metadata=metadata,
+        payment_intent_data={"metadata": metadata} if payment_type == "oneTime" else None,
+        subscription_data={"metadata": metadata} if payment_type == "monthly" else None,
+        custom_fields=custom_fields
     )
     return session
 

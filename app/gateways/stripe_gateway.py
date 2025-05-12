@@ -8,10 +8,23 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
     metadata = {
         "gift_aid": str(gift_aid_donation).lower()
     }
+
+    custom_fields = [
+        {
+            "key": "full_name",
+            "label": {
+                "type": "custom",
+                "custom": "Full Name"
+            },
+            "type": "text",
+            "optional": False
+        }
+    ]
     
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         mode="subscription" if payment_type == "monthly" else "payment",
+        billing_address_collection="required",
         line_items=[{
             "price_data": {
                 "currency": "gbp",
@@ -28,6 +41,7 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
         metadata=metadata,
         payment_intent_data={"metadata": metadata} if payment_type == "oneTime" else None,
         subscription_data={"metadata": metadata} if payment_type == "monthly" else None,
+        custom_fields=custom_fields
     )
     return session
 

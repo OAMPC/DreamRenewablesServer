@@ -1,5 +1,5 @@
+from gateways.sheets_gateway import log_donation_to_sheet
 from gateways.stripe_gateway import verify_stripe_signature
-import json
 import logging
 
 logger = logging.getLogger("stripe_webhook")
@@ -15,21 +15,36 @@ def handle_stripe_event(payload: bytes, signature_header: str) -> str:
     event_type = event.get("type", "unknown")
     data = event.get("data", {}).get("object", {})
 
-    logger.info(f"Received Stripe event: {event_type}")
-
     if event_type == "checkout.session.completed":
         customer_details = data.get("customer_details", {})
+        address = customer_details.get("address", {})
+
         email = customer_details.get("email", "[no email]")
-        amount = data.get("amount_total", 0)
+
+        postal_code = address.get("postal_code", "[no postcode]")
+        address_line_one = address.get("line1", "[no address line one]")
+        address_line_two = address.get("line1", "[no address line two]")
+
+
         metadata = data.get("metadata", {})
+        gift_aid = metadata.get("gift_aid", "false") == "true"
 
-        logger.info(f"Payment completed")
-        logger.info(f" - Email: {email}")
-        logger.info(f" - Amount: £{amount/100:.2f}")
-        logger.info(f" - Metadata: {json.dumps(metadata)}")
+        custom_fields = data.get("custom_fields", [])
+        full_name = next((field['text']['value'] for field in custom_fields if field['key'] == 'full_name'), "[no name]")
 
-        # TODO: Save donation, send thank you, etc.
+        amount = data.get("amount_total", 0) / 100
+        payment_type = "monthly" if data.get("mode") == "subscription" else "one-time"
+
+        log_donation_to_sheet(
+            email=email,
+            full_name=full_name,
+            postcode=postal_code,
+            address_line_one=address_line_one,
+            address_line_two=address_line_two,
+            amount=amount,
+            gift_aid=gift_aid,
+            payment_type=payment_type,
+        )        
         return "checkout.session.completed processed"
 
-    logger.warning(f"Ignored unexpected event type: {event_type}")
     return f"Ignored event: {event_type}"

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from controllers.customer_controller import router as customer_controller
 from controllers.payment_controller import router as payment_router
 from controllers.webhook_controller import router as webhook_router
 from dotenv import load_dotenv
@@ -18,3 +19,4 @@ app.add_middleware(
 
 app.include_router(payment_router)
 app.include_router(webhook_router)
+app.include_router(customer_controller)

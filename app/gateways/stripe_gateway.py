@@ -56,3 +56,16 @@ def verify_stripe_signature(payload: bytes, sig_header: str) -> dict:
     except (ValueError, stripe.error.SignatureVerificationError) as e:
         print("Stripe webhook signature invalid: ", e)
         raise
+
+def create_customer_session(email: str) -> str:
+    customers = stripe.Customer.list(email=email, limit=1)
+    
+    if not customers.data:
+        raise Exception(f"No Stripe customer found with email {email}")
+    
+    customer_id = customers.data[0].id
+
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+    )
+    return session.url

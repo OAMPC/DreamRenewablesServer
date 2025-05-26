@@ -23,7 +23,7 @@ def handle_stripe_event(payload: bytes, signature_header: str) -> str:
 
         postal_code = address.get("postal_code", "[no postcode]")
         address_line_one = address.get("line1", "[no address line one]")
-        address_line_two = address.get("line1", "[no address line two]")
+        address_line_two = address.get("line2", "[no address line two]")
 
 
         metadata = data.get("metadata", {})

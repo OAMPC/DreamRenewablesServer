@@ -20,7 +20,7 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
             "optional": False
         }
     ]
-    
+
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         mode="subscription" if payment_type == "monthly" else "payment",
@@ -30,7 +30,7 @@ def create_checkout_session(amount_in_pence: int, payment_type: str, cancel_url:
                 "currency": "gbp",
                 "unit_amount": amount_in_pence,
                 "product_data": {
-                    "name": "Monthly Donation to Dream Renewables" if payment_type == "monthly" else "One-Time Donation to Dream Renewables",
+                    "name": f'a Repeat {"Gift Aid" if metadata.get("gift_aid").lower() == "true" else ""} Donation' if payment_type == "monthly" else "One Off Donation",
                 },
                 "recurring": {"interval": "month"} if payment_type == "monthly" else None,
             },
@@ -68,4 +68,5 @@ def create_customer_session(email: str) -> str:
     session = stripe.billing_portal.Session.create(
         customer=customer_id,
     )
+    
     return session.url

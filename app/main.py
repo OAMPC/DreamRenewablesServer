@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from controllers.customer_controller import router as customer_controller
 from controllers.payment_controller import router as payment_router
 from controllers.webhook_controller import router as webhook_router
@@ -16,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/app/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(payment_router)
 app.include_router(webhook_router)

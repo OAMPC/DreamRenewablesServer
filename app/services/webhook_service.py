@@ -1,5 +1,6 @@
+from gateways.aws_ses_gateway import send_thank_you_email
 from gateways.sheets_gateway import log_donation_to_sheet
-from gateways.stripe_gateway import verify_stripe_signature
+from gateways.stripe_gateway import create_customer_session, verify_stripe_signature
 import logging
 
 logger = logging.getLogger("stripe_webhook")
@@ -35,6 +36,8 @@ def handle_stripe_event(payload: bytes, signature_header: str) -> str:
         amount = data.get("amount_total", 0) / 100
         payment_type = "monthly" if data.get("mode") == "subscription" else "one-time"
 
+        customer_session_url = create_customer_session(email) if payment_type == "monthly" else ""
+
         log_donation_to_sheet(
             email=email,
             full_name=full_name,
@@ -45,6 +48,14 @@ def handle_stripe_event(payload: bytes, signature_header: str) -> str:
             gift_aid=gift_aid,
             payment_type=payment_type,
         )        
+
+        send_thank_you_email(
+           to_email=email,
+            full_name=full_name,
+            amount=amount,
+            payment_type=payment_type,
+            customer_session_url=customer_session_url
+        )
         return "checkout.session.completed processed"
 
     return f"Ignored event: {event_type}"
